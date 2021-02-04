@@ -1,0 +1,159 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @Author: sensor-dream
+## @Email: sensor-dream@sensor-dream.ru
+## @Copyright © sensor-dream. All rights reserved. Contacts: sensor-dream@sensor-dream.ru
+## @Copyright © sensor-dream. All rights reserved. Contacts: sensor-dream@sensor-dream.ru
+## @Copyright © Sensor-Dream Boxed System (SDBS). Contacts: sensor-dream@sensor-dream.ru
+## @License: http://www.apache.org/licenses/LICENSE-2.0
+## @Site: https://sensor-dream.ru
+## @File: packs-in-system
+## @Creation date file: 07.02.2021, 18:45:43
+
+[[ -z "${packs_in_system_script_source}" ]] && declare -rx packs_in_system_script_source="$BASH_SOURCE"
+
+if [[ -z "${packs_in_system_script_source_path}" ]]; then
+  file_list="$(dirname ${packs_in_system_script_source})"
+  if [[ "${file_list}" == '.' ]]; then
+    declare -rx packs_in_system_script_source_path="$(pwd)"
+  else
+    declare -rx packs_in_system_script_source_path="${file_list}"
+  fi
+fi
+
+if [[ -z "${main_run_script_path}" ]]; then
+  declare -rx main_run_script_path="$(pwd)"
+  printf "Script runs from path: %s\n" "${main_run_script_path}"
+fi
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+  check=1
+  while [[ "${check}" -eq 1 ]]; do
+    if [[ ! -f 'main.cfg' ]]; then
+      if [[ "$(pwd)" != "/" ]]; then
+        cd ../
+      else
+        cd ${main_run_script_path}
+        check=0
+        echo -e '\e[31m'"!!! Not found configuration shared file !!!\033[0m"
+        tput sgr0
+        exit 1
+      fi
+    else
+      check=0
+      declare -rx main_project_path="$(pwd)"
+      . "${main_project_path}/main.cfg" "$@"
+      cd "${main_run_script_path}"
+    fi
+  done
+fi
+
+printf "Loading: %s\n" "$(readlink -m ${BASH_SOURCE})"
+
+function get_packs_in_system() {
+
+  local list="$(unset_dupes_in_array $(sudo dnf repoquery --installed \* | sed -e 's/-[0-9]*[.:].*$//mig'))"
+  maunal_install_count_packages="$(echo ${list} | wc -w)"
+
+  # printf '%s\n' $(unset_dupes_in_array "$(sudo dnf repoquery --installed \* | sed -e 's/-[0-9]*[.:].*$//mig')") | grep -E 'liblqr|ntfs|texlive-pst|xorg-x11-fonts-ISO8859|arpwatch|tcpd'
+
+  printf '%s\n' ${list} | sort --parallel ${number_cores} -b -o "${file_list}"
+
+  echo "${maunal_install_count_packages}" >"${file_list}.count"
+
+}
+
+function get_info_packs_in_system() {
+
+  # [[ -f "${file_list}" ]] || get_packs_in_system
+  echo -e "Create ${file_list}.info for all installed packages\n"
+  sudo dnf info --installed $(cat ${file_list}) | sed '1d' | tee "${file_list}.info" >/dev/null
+
+}
+
+function get_count_packs_in_system() {
+
+  [[ -f "${file_list}.count" ]] || get_packs_in_system
+  maunal_install_count_packages=$(cat ${file_list}.count)
+  echo -e "Total number of installed packages: ${maunal_install_count_packages}\nTotal number of manual installed packages: $((${maunal_install_count_packages} - ${clean_count_packages}))"
+
+}
+
+function install_packs_in_system() {
+
+  local list_install="${file_list//-${os_id}-${os_version_id}/}.install"
+  [[ -f "${file_list}.install" ]] || diff -u "${file_list}.clean" "${file_list}" | grep -E '^[+][^+].*$' | sed 's/\+//' | tee "${list_install}" >/dev/null
+  local install="$(cat ${list_install})"
+  echo -e "\nNumber of packages to install: $(echo ${install} | wc -w)\n"
+  pm -p -- "$(unset_dupes_in_array ${install} $@)"
+  get_packs_in_system
+  diff -u "${file_list}.clean" "${file_list}" | grep -E '^[+][^+].*$' | sed 's/\+//' | tee "${list_install}" >/dev/null
+
+}
+
+function backup_list() {
+
+  [[ -f CNAME ]] || ../
+  echo -e "Backup all files in ${pach_list_collections} directory\ninto ./temp/packs-in-system.${os_id}-${os_version_id}.${format_datetime}.tar.bz2\n"
+  tar jcf ./temp/packs-in-system.${os_id}-${os_version_id}.${format_datetime}.tar.bz2 ./list-collections
+
+}
+
+function main_packs_in_system_script_source() {
+
+  # printf "Initialise main function of packs-in-system script source\n"
+
+  local flag=0
+  local file_list="${pach_list_collections}/packs-in-system-${os_id}-${os_version_id}.list"
+  local clean_count_packages=
+  local maunal_install_count_packages=
+
+  OPTIND=1
+
+  while getopts "giIcb" OPT; do
+    case $OPT in
+    g) flag=1 ;;
+    i) flag=2 ;;
+    I) flag=3 ;;
+    c) flag=4 ;;
+    b) flag=5 ;;
+    *) flag=0 ;;
+    esac
+  done
+  shift $(($OPTIND - 1))
+  # shift `expr $OPTIND - 1`
+  [ "${1:-}" = "--" ] && shift
+
+  if [[ ! -f "${file_list}.clean" ]]; then
+    temp_one="${file_list}"
+    file_list="${temp_one}.clean"
+    get_packs_in_system
+    sed -i -E -e 's/^(mc|dnf[-]utils|gpm[-]libs|slang|dnf[-]plugins[-]core|python3[-]dnf[-]plugins[-]core)$//mig; /^$/d;' "${file_list}"
+    echo $(($(tail -n 1 ${file_list}.count) - 4)) >"${file_list}.count"
+    file_list="${temp_one}"
+    # flag=0
+  fi
+
+  clean_count_packages=$(cat ${file_list}.clean.count)
+  echo -e "\nThe number of installed packages, clean system: ${clean_count_packages}\n"
+
+  if [[ ! -f "${file_list}" ]]; then
+    get_packs_in_system
+    # flag=0
+  fi
+
+  case ${flag} in
+  1) get_packs_in_system ;;
+  2) install_packs_in_system "$@" ;;
+  3) get_info_packs_in_system ;;
+  4) get_count_packs_in_system ;;
+  5) backup_list ;;
+  *) echo -e "Options:\n\t-g: get packs in system and write in file - ${file_list}\n\t-i: install packs in system from one file - ${file_list}.install\n\t-I: get info packs in system and write in file - ${file_list}.info\n\t-b: Backup all files in ${pach_list_collections} directory\n\t-c: count packs in system from ${file_list}.count\n" ;;
+  esac
+
+  [[ ${flag} -eq 4 ]] || get_count_packs_in_system
+
+}
+
+main_packs_in_system_script_source "$@"

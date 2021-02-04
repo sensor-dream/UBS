@@ -1,0 +1,93 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @Author: sensor-dream
+## @Email: sensor-dream@sensor-dream.ru
+## @Copyright © sensor-dream. All rights reserved. Contacts: sensor-dream@sensor-dream.ru
+## @Copyright © sensor-dream. All rights reserved. Contacts: sensor-dream@sensor-dream.ru
+## @Copyright © Sensor-Dream Boxed System (SDBS). Contacts: sensor-dream@sensor-dream.ru
+## @License: http://www.apache.org/licenses/LICENSE-2.0
+## @Site: https://sensor-dream.ru
+## @File: unpack-gresource
+## @Creation date file: 05.03.2021, 14:06:49
+
+[[ -z "${unpack_gresource_script_source}" ]] && declare -rx unpack_gresource_script_source="$BASH_SOURCE"
+
+if [[ -z "${unpack_gresource_script_source_path}" ]]; then
+    temp_one="$(dirname ${unpack_gresource_script_source})"
+    if [[ "${temp_one}" == '.' ]]; then
+        declare -rx unpack_gresource_script_source_path="$(pwd)"
+    else
+        declare -rx unpack_gresource_script_source_path="${temp_one}"
+    fi
+fi
+
+if [[ -z "${main_run_script_path}" ]]; then
+    declare -rx main_run_script_path="$(pwd)"
+    printf "Script runs from path: %s\n" "${main_run_script_path}"
+fi
+
+if [[ -z "${main_cfg_script_source}" ]]; then
+    check=1
+    while [[ "${check}" -eq 1 ]]; do
+        if [[ ! -f 'main.cfg' ]]; then
+            if [[ "$(pwd)" != "/" ]]; then
+                cd ../
+            else
+                cd ${main_run_script_path}
+                check=0
+                echo -e '\e[31m'"!!! Not found configuration shared file !!!\033[0m"
+                tput sgr0
+                exit 1
+            fi
+        else
+            check=0
+            declare -rx main_project_path="$(pwd)"
+            . "${main_project_path}/main.cfg" "$@"
+            cd "${main_run_script_path}"
+        fi
+    done
+fi
+
+printf "Loading: %s\n" "$(readlink -m ${BASH_SOURCE})"
+
+function unpack_gresource() {
+
+    echo "Read https://wiki.archlinux.org/index.php/GDM#Starting"
+
+    if [[ -n "$@" ]]; then
+        gst="$@"
+    else
+        gst=/usr/share/gnome-shell/gnome-shell-theme.gresource
+    fi
+
+    [[ -f "${gst}.back" ]] || sudo cp "${gst}" "${gst}.back"
+
+    workdir=$(echo ${main_project_path}/temp/$(basename ${gst}) | sed 's/\.gresource//')
+
+    printf "\nUnpack:\n\t${gst}\n\tto\n\t${workdir}\n\n"
+    # exit
+
+    local gstl=$(gresource list $gst)
+
+    for r in ${gstl[@]}; do
+        r=${r#\/org\/gnome\/shell/}
+        if [ ! -d $workdir/${r%/*} ]; then
+            mkdir -p $workdir/${r%/*}
+        fi
+    done
+
+    for r in ${gstl[@]}; do
+        gresource extract $gst $r >$workdir/${r#\/org\/gnome\/shell/}
+    done
+}
+
+function main_unpack_gresource_script_source() {
+
+    # printf "Initialise main function of unpack-gresource script source\n";
+
+    unpack_gresource "$@"
+
+}
+
+main_unpack_gresource_script_source "$@"

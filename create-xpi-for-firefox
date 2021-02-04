@@ -1,0 +1,22 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @Author: sensor-dream
+## @Email: sensor-dream@sensor-dream.ru
+## @Copyright © sensor-dream. All rights reserved. Contacts: sensor-dream@sensor-dream.ru
+## @Copyright © sensor-dream. All rights reserved. Contacts: sensor-dream@sensor-dream.ru
+## @Copyright © Sensor-Dream Boxed System (SDBS). Contacts: sensor-dream@sensor-dream.ru
+## @License: http://www.apache.org/licenses/LICENSE-2.0
+## @Site: https://sensor-dream.ru
+## @File: create-xpi-for-firefox
+## @Creation date file: 09.02.2021, 05:10:01
+
+[[ -n $(rpm -q 'zip' | grep 'zip-') ]] || sudo dnf install zip
+# [[ -n $(rpm -q 'wcstools' | grep 'wcstools-') ]] || sudo dnf install wcstools
+# extension_name="$(filename $(pvd))"
+
+extension_name="$(basename $(pwd))"
+
+cd extension
+zip -r -0 ../${extension_name}.xpi * -x '.gitignore'
+cd ../

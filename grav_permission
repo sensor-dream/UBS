@@ -1,0 +1,7 @@
+#!/bin/sh
+
+sudo chown -R $(id -un).apache .
+sudo find . -type f -exec chmod 664 {} \;
+sudo find ./bin -type f -exec chmod 775 {} \;
+sudo find . -type d -exec chmod 775 {} \;
+sudo find . -type d -exec chmod +s {} \;

@@ -1,0 +1,315 @@
+#!/bin/env bash
+# -*- coding: utf-8 -*-
+#
+## @Author: sensor-dream
+## @Email: sensor-dream@sensor-dream.ru
+## @Copyright © sensor-dream. All rights reserved. Contacts: sensor-dream@sensor-dream.ru
+## @Copyright © sensor-dream. All rights reserved. Contacts: sensor-dream@sensor-dream.ru
+## @Copyright © Sensor-Dream Boxed System (SDBS). Contacts: sensor-dream@sensor-dream.ru
+## @License: http://www.apache.org/licenses/LICENSE-2.0
+## @Site: https://sensor-dream.ru
+## @File: functions
+## @Creation date file: 21.08.2020, 04:47:20
+
+declare -rx functions_script_source="$BASH_SOURCE"
+
+printf "Loading: %s\n" "$(readlink -m ${BASH_SOURCE})"
+
+#
+## !!! No visible stdout messages
+#
+# cat > to.file in.file - <<EOF
+# MESSAGE BODY
+# EOF
+#
+
+# trim multiple space
+function trim_space() {
+    echo "$(sed -e 's/[[:space:]]\+/ /g; s/^[ ]//; s/[ \t]$//;' <<<$@)"
+}
+
+#  check_packages <${array[*]}>
+#  check_packages <"a b c d">
+#  return list text  string
+function check_packages() {
+    echo $(rpm -qa --qf '%{name}' $@)
+}
+
+#cat <<EOF >/dev/null
+if [[ "$(check_packages dnf-utils mc grubby)" == 'grubbymcdnf-utils' ]]; then
+    printf "Check dnf-utils, grubby and mc is OK \n"
+else
+    printf "\nAutomaticaly instal mc, grubby and dnf-utils packages\n"
+    sudo dnf install dnf-utils mc
+fi
+#EOF
+
+#  Список файлов пакета и где они находятся
+function get_list_rpm_file() {
+    echo "$(repoquery -lq $1)"
+}
+
+#  Список местонахождения файлов библиотеки
+function get_list_lib_file() {
+    echo "$(ldconfig -p | grep $1)"
+}
+
+#  check_instaldl_packages <${array[*]}>
+#  check_installd_packages <"a b c d">
+#  return list text  string
+function check_installed_packages() {
+    echo "$(dnf repoquery --installed --qf '%{name}' $@)"
+}
+
+function check_installed_grouplist() {
+    local list=($@)
+    echo $list[@]
+    local install=''
+    for i in ${!list[*]}; do
+        # echo ${list[$i]}
+        if grep -q "${list[$i]}" <<<$(dnf grouplist --installed -v ${list[$i]} 2>/dev/null); then
+            install+=" ${list[$i]}"
+        fi
+    done
+    echo "${install}"
+
+}
+
+#  find_packages_installation <${array[*]}>
+#  find_packages_installation <"a b c d">
+function find_packages_installation() {
+
+    local flag_group=0
+    local flag_remove=0
+    local flag_mess='Package'
+    local flag_hidden_package=0
+    local Arg=
+
+    OPTIND=1
+
+    while getopts "grm" OPT; do
+        case $OPT in
+        g)
+            flag_group=1
+            flag_mess="Group"
+            ;;
+        r) flag_remove=1 ;;
+        p) flag_hidden_package=1 ;;
+        *) ;;
+        esac
+    done
+
+    shift $(($OPTIND - 1))
+    [ "${1:-}" = "--" ] && shif
+
+    Arg=($(trim_space $@))
+    # local Arg=("$@");
+    # echo ${Arg[*]};
+    if [[ ${flag_group} -eq 0 ]]; then
+        temp_three="$(check_installed_packages ${Arg[@]})"
+    else
+        temp_three="$(check_installed_grouplist ${Arg[@]})"
+    fi
+
+    # echo "check: |${installPackages}|"
+    # exit
+
+    temp_one=()
+    temp_two=()
+    for i in ${!Arg[*]}; do
+        # echo ${Arg[$i]}
+        if ! grep -q "${Arg[$i]}" <<<${temp_three}; then
+            temp_one+=("${Arg[$i]}")
+        else
+            temp_two+=("${Arg[$i]}")
+        fi
+    done
+
+    if [[ -n "${temp_two[@]}" ]]; then
+        if [[ ${flag_hidden_package} -eq 1 ]]; then
+            echo -en '\e[1;5;36m'"${flag_mess}(s) already used:\n\t"'\e[0m'"${temp_two[@]}\n"
+        else
+            echo -en '\e[1;5;36m'"The package (s) are already used in the quantity: "'\e[0m'"${#temp_two[@]}\n"
+        fi
+    fi
+    # [[ -n "${Installed[@]}" ]] && echo -en "\n${flag_mess}(s) already used:\n\n${Installed[@]}\n\n"
+    # [[ -n "${Installed[@]}" ]] && echo -e "\n${flag_mess}(s) already used:\n" && echo -e "\n${Installed[@]}\n\n" | pr -3ts' ' | tr '\t' ' ' | tr -s ' ' | tr ' ' '\n' | pr -5ts' ' | column -t
+
+    tput sgr0
+
+}
+
+#  pm <${array[*]}>
+#  pm <"a b c d">
+function pm() {
+
+    local action='install'
+    local options='--skip-broken'
+    local exclude=''
+    local force=0
+    local flag_group=
+    local flag_remove=
+    local flag_mess='Package'
+
+    OPTIND=1
+
+    while getopts "flrRgan:xp" OPT; do
+        case $OPT in
+        f)
+            options="${options} --allowerasing --best"
+            force=1
+            ;;
+        l)
+            action="local${action}"
+            ;;
+        r)
+            action='remove'
+            flag_remove='-r'
+            ;;
+        R)
+            action='reinstall'
+            ;;
+        g)
+            action="group${action}"
+            flag_group="-g"
+            flag_mess='Group'
+            ;;
+        a) options="${options} --assumeyes" ;;
+        n) options="${options} --noautoremove" ;;
+        x) exclude="${exclude} -x $OPTARG" ;;
+        *) ;;
+        esac
+    done
+
+    shift $(($OPTIND - 1))
+    [ "${1:-}" = "--" ] && shift
+
+    #if [[ "${action}" == 'groupinstall' ]]; then
+    #  sudo dnf ${action} ${options} "$@" ${exclude}
+    #  return
+    #fi
+
+    find_packages_installation ${flag_group} ${flag_remove} ${@}
+    if [[ -n "${temp_one}" && "${temp_one[@]}" != " " || ${flag_remove} == '-r' ]]; then
+        # echo -en '\e[1;36m'"${flag_mess}(s) install list:\n\t"'\e[0m'"${temp_one[@]}\n"
+        # echo -en "\n${flag_mess}(s) install list:\n\n${temp_one[@]}\n\n"
+        echo -en '\e[1;5;32m'"${flag_mess}(s) ${action} list (count ${#temp_one[@]}):\n\t"'\e[0m'"${temp_one[@]}\n\n"
+        if [[ "${action}" == 'remove' ]]; then
+            if [[ -n ${temp_two[@]} ]]; then
+                sudo dnf ${action} ${options} ${temp_two[@]} ${exclude}
+            else
+                echo "Все пакеты из списка deleted."
+            fi
+        else
+            sudo dnf ${action} ${options} ${temp_one[@]} ${exclude}
+        fi
+    fi
+
+    tput sgr0
+
+}
+
+function X_GNOME_Autostart_disabled() {
+
+    local full_name="$@"
+    local name="$(echo ${full_name} | sed 's%/etc/xdg/autostart/%%')"
+
+    # full_name="$(readlink -m ${full_name})"
+
+    # [[ -L "${full_name}" ]] && full_name="$(sudo readlink ${full_name})"
+
+    echo "File name: ${name}"
+    echo "Full file name: ${full_name}"
+
+    # exit
+
+    if grep -q 'X-GNOME-Autostart-enabled' "${full_name}"; then
+        if grep -q 'X-GNOME-Autostart-enabled=true' "${full_name}"; then
+            sudo bash -c "sed -i 's/^X-GNOME-Autostart-enabled=true/X-GNOME-Autostart-enabled=false/g' ${full_name}"
+            echo "Disable autostart ${full_name}"
+        else
+            echo "Autostart is disabled in ${full_name}"
+        fi
+    else
+        sudo bash -c "echo X-GNOME-Autostart-enabled=false >>${full_name}"
+        echo "Disable autostart ${full_name}"
+    fi
+    if [[ ! -d "/home/${session_user}/.config/autostart" ]]; then
+        mkdir -p "/home/${session_user}/.config/autostart"
+        echo "Not found /home/${session_user}/.config/autostart created it"
+    fi
+    if [[ ! -f "/home/${session_user}/.config/autostart/${name}" ]]; then
+        cp "${full_name}" "/home/${session_user}/.config/autostart"
+        echo "Copy ${full_name} to /home /${session_user}/.config/autostart/${name}"
+    else
+        echo "/home/${session_user}/.config/autostart/${name} already exists"
+        if grep -q 'X-GNOME-Autostart-enabled' "/home/${session_user}/.config/autostart/${name}"; then
+            if grep -q 'X-GNOME-Autostart-enabled=true' "/home/${session_user}/.config/autostart/${name}"; then
+                sed -i 's/^X-GNOME-Autostart-enabled=true/X-GNOME-Autostart-enabled=false/g' "/home/${session_user}/.config/autostart/${name}"
+                echo "Disable autostart /home/${session_user}/.config/autostart/${name}"
+            else
+                echo "Autostart is disabled in /home/${session_user}/.config/autostart/${name}"
+            fi
+        else
+            echo 'X-GNOME-Autostart-enabled=false' >>"/home/${session_user}/.config/autostart/${name}"
+            echo "Disable /home/${session_user}/.config/autostart/${name}"
+        fi
+    fi
+}
+export -f X_GNOME_Autostart_disabled
+
+function unset_dupes_in_array() {
+
+    # unset dupes
+    local -A dupes
+    local in=($@)
+    local out=()
+
+    for i in "${in[@]}"; do
+
+        # printf '%s\n' "${install_pkg[@]}" | sort -u
+
+        if [[ -z ${dupes[$i]} ]]; then
+            out+=("$i")
+        fi
+        dupes["$i"]=1
+    done
+    unset dupes # optional
+    echo "${out[@]}"
+}
+
+function insert_or_replace_var_value_in_string_data() {
+    local delim=' = '
+    OPTIND=1
+    while getopts "s" OPT; do
+        case $OPT in
+        s) delim='=' ;;
+        *) ;;
+        esac
+    done
+    shift $(($OPTIND - 1))
+    [ "${1:-}" = "--" ] && shift
+    local search="$1"
+    shift
+    local insert="$@"
+    if ! grep -qE "${search}" <<<"${temp_one}"; then
+        echo "Insert: ${search}${delim}${insert}"
+        temp_one+=$'\n'"${search}${delim}${insert}"
+    else
+        echo "Replace: ${search}${delim}.*$ to ${search}${delim}${insert}"
+        temp_one="$(sed -E 's%'"$search"'.*$%'"$search$delim$insert"'%' <<<${temp_one})"
+    fi
+}
+
+function insert_or_replace_substring_in_string_data() {
+    local search="$1"
+    shift
+    local insert="$@"
+    if ! grep -qE "${search}" <<<"${temp_one}"; then
+        echo "Insert: ${insert}"
+        temp_one+=$'\n'"${insert}"
+    else
+        echo "Replace: ${search} to ${insert}"
+        temp_one="$(sed -E 's%'"$search"'%'"$insert"'%' <<<${temp_one})"
+    fi
+}

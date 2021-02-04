@@ -1,0 +1,32 @@
+{
+  "files.watcherExclude": {
+    "**/.git/**": true,
+    "**/node_modules/**": true,
+    "**/vendor/**": true
+  },
+  "workbench.sideBar.location": "right",
+  "editor.fontFamily": "'Fira Code', 'Droid Sans Mono', 'monospace', 'Droid Sans Fallback'",
+  "editor.fontLigatures": true,
+  "editor.fontSize": 14,
+  "editor.tabSize": 2,
+  "editor.fontWeight": "normal",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "eslint.validate": [
+    "javascript",
+    "vue"
+  ],
+  "puglint.enable": true,
+  "gremlins.characters": {
+    "000c" : {
+        "zeroWidth": true,
+        "description": "FORM FEED (FF)",
+        "overviewRulerColor": "rgba(255,127,80,1)"
+    },
+    "00a0" : {
+      "hideGutterIcon": false
+    }
+  }
+}
