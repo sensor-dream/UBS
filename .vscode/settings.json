@@ -17,16 +17,5 @@
   "eslint.validate": [
     "javascript",
     "vue"
-  ],
-  "puglint.enable": true,
-  "gremlins.characters": {
-    "000c" : {
-        "zeroWidth": true,
-        "description": "FORM FEED (FF)",
-        "overviewRulerColor": "rgba(255,127,80,1)"
-    },
-    "00a0" : {
-      "hideGutterIcon": false
-    }
-  }
+  ]
 }
