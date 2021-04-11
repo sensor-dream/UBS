@@ -42,13 +42,13 @@ declare -rx cfg_dns_tls_securedns_eu=(146.185.167.43@853)
 # unicast.censurfridns.dk Europe
 declare -rx cfg_dns_tls_unicast_censurfridns_dk=(89.233.43.71@853)
 
-declare -rx cfg_ip_dns_1="${cfg_dns_Google[0]}"
-declare -rx cfg_ip_dns_2="${cfg_dns_Yandex[0]}"
-declare -rx cfg_ip_dns_3="${cfg_dns_Cloudflare[0]}"
+declare -rx cfg_ip_dns_1="${cfg_dns_Cloudflare[0]}"
+declare -rx cfg_ip_dns_2="${cfg_dns_Google[0]}"
+declare -rx cfg_ip_dns_3="${cfg_dns_Yandex[0]}"
 declare -rx cfg_ip_dns_4="${cfg_dns_DNS_Watch[0]}"
-declare -rx cfg_ip_dns_5="${cfg_dns_Google[1]}"
-declare -rx cfg_ip_dns_6="${cfg_dns_Yandex[1]}"
-declare -rx cfg_ip_dns_7="${cfg_dns_Cloudflare[1]}"
+declare -rx cfg_ip_dns_5="${cfg_dns_Cloudflare[1]}"
+declare -rx cfg_ip_dns_6="${cfg_dns_Google[1]}"
+declare -rx cfg_ip_dns_7="${cfg_dns_Yandex[1]}"
 declare -rx cfg_ip_dns_8="${cfg_dns_DNS_Watch[1]}"
 
 # DNS от Cloudflare (primary slave)
@@ -68,11 +68,11 @@ declare -rx cfg_dns_ipv6_Yandex=(2a02:6b8::feed:0ff 2a02:6b8:0:1::feed:0ff)
 # DNS от OpenNIC (primary slave) https://servers.opennicproject.org/
 declare -rx cfg_dns_ipv6_OpenNIC=(2001:67c:13e4:1::37 2001:470:1f06:10b::2)
 
-declare -rx cfg_ipv6_dns_1="${cfg_dns_ipv6_Google[0]}"
-declare -rx cfg_ipv6_dns_2="${cfg_dns_ipv6_Yandex[0]}"
-declare -rx cfg_ipv6_dns_3="${cfg_dns_ipv6_Cloudflare[0]}"
+declare -rx cfg_ipv6_dns_1="${cfg_dns_ipv6_Cloudflare[0]}"
+declare -rx cfg_ipv6_dns_2="${cfg_dns_ipv6_Google[0]}"
+declare -rx cfg_ipv6_dns_3="${cfg_dns_ipv6_Yandex[0]}"
 declare -rx cfg_ipv6_dns_4="${cfg_dns_ipv6_DNS_Watch[0]}"
-declare -rx cfg_ipv6_dns_5="${cfg_dns_ipv6_Google[1]}"
-declare -rx cfg_ipv6_dns_6="${cfg_dns_ipv6_Yandex[1]}"
-declare -rx cfg_ipv6_dns_7="${cfg_dns_ipv6_Cloudflare[1]}"
+declare -rx cfg_ipv6_dns_5="${cfg_dns_ipv6_Cloudflare[1]}"
+declare -rx cfg_ipv6_dns_6="${cfg_dns_ipv6_Google[1]}"
+declare -rx cfg_ipv6_dns_7="${cfg_dns_ipv6_Yandex[1]}"
 declare -rx cfg_ipv6_dns_8="${cfg_dns_ipv6_DNS_Watch[1]}"
