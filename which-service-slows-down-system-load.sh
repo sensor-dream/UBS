@@ -1,6 +1,6 @@
 #!/bin/env sh
 
-[[ -d ../../Temp ]] || mkdir ../../Temp
+[[ -d ${CFG_STORAGE_DATA}/Temp ]] || mkdir ${CFG_STORAGE_DATA}/Temp
 
-systemd-analyze plot > ../../Temp/systemd-plot.svg
-xdg-open ../../Temp/systemd-plot.svg
+systemd-analyze plot > ${CFG_STORAGE_DATA}/Temp/systemd-plot.svg
+xdg-open ${CFG_STORAGE_DATA}/Temp/systemd-plot.svg
