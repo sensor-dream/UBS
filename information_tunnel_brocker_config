@@ -1,0 +1,7 @@
+declare -rx name_brocker="tunnelbroker.net";
+declare -rx brocker_remote_ip="";
+declare -rx brocker_gw_ipv6="";
+declare -rx brocker_ipv6="";
+declare -rx brocker_network_pull="";
+declare -rx ipv6_mask="";
+declare -rx ipv6_mask_pull="";

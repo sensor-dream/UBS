@@ -1,0 +1,5 @@
+declare -rx smtp_login="smtp.yandex.ru";
+declare -rx smtp_password="ngvnrynbv19481973";
+declare -rx smtp_server="";
+declare -rx smtp_port=;
+declare -rx smtp_protocol="";

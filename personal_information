@@ -1,0 +1,9 @@
+declare -rx main_user="sensor-dream";
+declare -rx main_email="sensor-dream@sensor-dream.ru";
+declare -rx main_password="ngvnrynbv2006";
+declare -rx main_org="SDBS";
+declare -rx main_full_org="Sensor-Dream Boxed System";
+declare -rx main_domain="sensor-dream.ru";
+declare -rx main_local_group_domain="home.sensor-dream.ru";
+declare -rx main_hostname="4.home.sensor-dream.ru";
+declare -rx main_local_zone="Asia/Novosibirsk";

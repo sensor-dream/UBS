@@ -1,0 +1,6 @@
+declare -rx main_publick_recaptcha_v2_checkbox="";
+declare -rx main_private_recaptcha_v2_checkbox="";
+declare -rx main_publick_recaptcha_v2_hidden="";
+declare -rx main_private_recaptcha_v2_hidden="";
+declare -rx main_publick_recaptcha_v3="";
+declare -rx main_private_recaptcha_v3="";

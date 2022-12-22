@@ -1,0 +1,6 @@
+declare -rx device_interface="";
+declare -rx ip_device="";
+declare -rx ip_gateway="";
+declare -rx link_local="";
+declare -rx ip_mask="";
+declare -rx main_white_ip="";

@@ -1,0 +1,4 @@
+declare -rx db_mysql_login="";
+declare -rx db_mysql_password="";
+declare -rx db_mysql_port="";
+declare -rx db_mysql_server="";
